@@ -1,0 +1,46 @@
+{
+  "name": "template-express-ts",
+  "version": "1.0.0",
+  "description": "Express TS project template",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/src/cmd/server/main.js",
+    "dev": "tsx watch src/cmd/server/main.ts",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.14.0",
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
+    "ioredis": "^5.10.1",
+    "pg": "^8.21.0",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "ws": "^8.21.0"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.9.1",
+    "@types/pg": "^8.20.0",
+    "@types/ws": "^8.18.1",
+    "drizzle-kit": "^0.31.10",
+    "pg-hstore": "^2.3.4",
+    "pino-pretty": "^13.1.3",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3"
+  }
+}

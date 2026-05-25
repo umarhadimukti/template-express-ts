@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "lib": ["ESNext"],
+
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true, // Error jika ada variabel nganggur
+    "noUnusedParameters": true, // Error jika ada param fungsi tak terpakai
+    "noImplicitReturns": true, // Pastikan semua path fungsi return value
+    "noFallthroughCasesInSwitch": true,
+
+    "outDir": "./dist",
+    "rootDir": ".",
+    "esModuleInterop": true, // Memudahkan import library CommonJS
+    "forceConsistentCasingInFileNames": true, // Penting jika tim pakai Windows & Mac/Linux
+    "skipLibCheck": true, // Mempercepat kompilasi (abaikan error di node_modules)
+    "sourceMap": true,
+
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*", "drizzle/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts", "dist"]
+}
