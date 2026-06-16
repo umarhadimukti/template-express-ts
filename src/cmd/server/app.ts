@@ -1,14 +1,14 @@
 import cookieParser from "cookie-parser";
 import express from "express";
 import type { Request, Response } from "express";
-import { httpLogger } from "@/middleware/logger/logger.middleware";
-import { errorHandler, notFoundHandler } from "@/middleware/middleware";
+import { httpLogger } from "#/middleware/logger/logger.middleware";
+import { errorHandler, notFoundHandler } from "#/middleware/middleware";
 import {
   corsMiddleware,
   rateLimitMiddleware,
   securityMiddleware,
-} from "@/middleware/security/security.middleware";
-import { initRouterV1 } from "@/router/router";
+} from "#/middleware/security/security.middleware";
+import { initRouterV1 } from "#/router/router";
 
 const app = express();
 

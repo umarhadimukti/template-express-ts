@@ -1,5 +1,5 @@
-import { db } from "@/bootstrap/database";
-import { usersTable } from "@/../drizzle/schema/user";
+import { db } from "#/bootstrap/database";
+import { usersTable } from "#/../drizzle/schema/user";
 import { and, eq, ilike, isNull, or, sql } from "drizzle-orm";
 import type {
   CreateUserRequest,

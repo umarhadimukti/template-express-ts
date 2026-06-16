@@ -1,10 +1,10 @@
 import http from "node:http";
-import app from "@/cmd/server/app";
-import { closeDatabase, initDatabase } from "@/bootstrap/database";
-import { closeRedis, initRedis } from "@/bootstrap/redis";
-import { closeWebsocket, initWebSocket } from "@/bootstrap/websocket";
-import { loadConfig } from "@/config/config";
-import { logger } from "@/pkg/logger/logger";
+import app from "#/cmd/server/app";
+import { closeDatabase, initDatabase } from "#/bootstrap/database";
+import { closeRedis, initRedis } from "#/bootstrap/redis";
+import { closeWebsocket, initWebSocket } from "#/bootstrap/websocket";
+import { loadConfig } from "#/config/config";
+import { logger } from "#/pkg/logger/logger";
 
 process.on("uncaughtException", (err) => {
   console.error("[FATAL] Uncaught Exception:", err);

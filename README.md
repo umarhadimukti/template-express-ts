@@ -183,7 +183,7 @@ Connect to the WebSocket server at `ws://localhost:3080`.
 ### Push from server (service / controller)
 
 ```ts
-import { publishToTopic } from "@/bootstrap/websocket";
+import { publishToTopic } from "#/bootstrap/websocket";
 
 publishToTopic("orders", { id: 1, status: "created" });
 ```
@@ -200,7 +200,7 @@ publishToTopic("orders", { id: 1, status: "created" });
 ## Cache Helper
 
 ```ts
-import { withCache, cacheDel } from "@/pkg/cache/cache";
+import { withCache, cacheDel } from "#/pkg/cache/cache";
 
 // Cache-aside: hit cache first, miss → fetch DB → store
 const user = await withCache(`user:${uid}`, 300, () => repo.findByUID(uid));

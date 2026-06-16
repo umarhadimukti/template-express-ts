@@ -14,6 +14,7 @@ export interface Config {
   DB_SSL: string;
   DB_URL: string;
   REDIS_URL: string;
+  REDIS_PORT: number;
   WEBSOCKET_HOST: string;
   WEBSOCKET_PORT: number;
 }
@@ -42,6 +43,7 @@ export function loadConfig(): Config {
       DB_SSL: getEnv("DB_SSL", "disable"),
       DB_URL: getDatabaseURL(),
       REDIS_URL: getEnv("REDIS_URL", "redis://127.0.0.1:6379"),
+      REDIS_PORT: getEnvNumber("REDIS_PORT", 3679),
       WEBSOCKET_HOST: getEnv("WEBSOCKET_HOST", "http://127.0.0.1"),
       WEBSOCKET_PORT: getEnvNumber("WEBSOCKET_PORT", 3030),
     };

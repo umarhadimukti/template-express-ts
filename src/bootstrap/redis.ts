@@ -1,6 +1,6 @@
 import Redis from "ioredis";
-import type { Config } from "@/config/config";
-import { logger } from "@/pkg/logger/logger";
+import type { Config } from "#/config/config";
+import { logger } from "#/pkg/logger/logger";
 
 let redis: Redis | null = null;
 

@@ -1,5 +1,5 @@
 import { pinoHttp } from "pino-http";
-import { logger } from "@/pkg/logger/logger";
+import { logger } from "#/pkg/logger/logger";
 
 export const httpLogger = pinoHttp({
   logger,
@@ -13,11 +13,15 @@ export const httpLogger = pinoHttp({
   },
   customSuccessMessage: (req, res, responseTime) => {
     const reqId = req.id || req.headers["x-request-id"] || "-";
-    return `[HTTP] ${req.method} ${req.url} | Status: ${res.statusCode} | Time: ${responseTime}ms | ReqID: ${reqId}`;
+    const rawRequest = req as any;
+    const body = rawRequest.raw?.body ? JSON.stringify(rawRequest.raw.body) : "-";
+    return `[HTTP] ${req.method} ${req.url} | Status: ${res.statusCode} | Time: ${responseTime}ms | ReqID: ${reqId} | Body: ${body}`;
   },
   customErrorMessage: (req, res, err) => {
     const reqId = req.id || req.headers["x-request-id"] || "-";
-    return `[HTTP ERROR] ${req.method} ${req.url} | Status: ${res.statusCode} | Error: ${err.message} | ReqID: ${reqId}`;
+    const rawRequest = req as any;
+    const body = rawRequest.raw?.body ? JSON.stringify(rawRequest.raw.body) : "-";
+    return `[HTTP ERROR] ${req.method} ${req.url} | Status: ${res.statusCode} | Error: ${err.message} | ReqID: ${reqId} | Body: ${body}`;
   },
   // trace_id untuk memudahkan debugging
   genReqId: (req) => req.headers["x-request-id"] || crypto.randomUUID(),

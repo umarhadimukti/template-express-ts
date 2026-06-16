@@ -1,6 +1,6 @@
 import { WebSocket, WebSocketServer } from "ws";
-import { logger } from "@/pkg/logger/logger";
-import { eventBus } from "@/pkg/events/event.bus";
+import { logger } from "#/pkg/logger/logger";
+import { eventBus } from "#/pkg/events/event.bus";
 
 let wss: WebSocketServer | null = null;
 

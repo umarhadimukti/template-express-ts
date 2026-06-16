@@ -1,0 +1,56 @@
+services:
+  db-emr-simrs:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-emr-simrs:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-3679}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-emr-simrs:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    container_name: api-emr-simrs
+    ports:
+      - "3001:3001"
+      - "3030:3030"
+    environment:
+      APP_ENV: production
+      NODE_ENV: production
+      DB_HOST: db-emr-simrs
+      REDIS_URL: redis://redis-emr-simrs:6379
+    env_file:
+      - ../.env.local
+    restart: unless-stopped
+    depends_on:
+      db-emr-simrs:
+        condition: service_healthy
+      redis-emr-simrs:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:

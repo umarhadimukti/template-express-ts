@@ -1,4 +1,4 @@
-import { loadConfig } from "@/config/config";
+import { loadConfig } from "#/config/config";
 import pino from "pino";
 
 const config = loadConfig();

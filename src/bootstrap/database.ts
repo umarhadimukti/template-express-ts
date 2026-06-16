@@ -1,5 +1,5 @@
-import { Config } from "@/config/config";
-import { logger } from "@/pkg/logger/logger";
+import { Config } from "#/config/config";
+import { logger } from "#/pkg/logger/logger";
 import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import pg from "pg";
 

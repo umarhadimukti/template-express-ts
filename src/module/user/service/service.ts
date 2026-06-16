@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { BadRequest, Conflict, NotFound } from "@/pkg/utils/error/error";
+import { BadRequest, Conflict, NotFound } from "#/pkg/utils/error/error";
 import { userError } from "../constant/error";
 import type { CreateUserRequest, ListUserRequest, UpdateUserRequest } from "../dto/dto";
 import * as repo from "../repository/repository";

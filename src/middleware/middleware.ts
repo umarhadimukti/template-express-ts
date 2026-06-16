@@ -1,5 +1,5 @@
-import { CustomError, NotFound } from "@/pkg/utils/error/error";
-import { errorResponse } from "@/pkg/utils/response/response";
+import { CustomError, NotFound } from "#/pkg/utils/error/error";
+import { errorResponse } from "#/pkg/utils/response/response";
 import { Request, Response, NextFunction } from "express";
 
 export async function notFoundHandler(
