@@ -2,7 +2,7 @@ import http from "node:http";
 import app from "@/cmd/server/app";
 import { closeDatabase, initDatabase } from "@/bootstrap/database";
 import { closeRedis, initRedis } from "@/bootstrap/redis";
-import { initWebSocket } from "@/bootstrap/websocket";
+import { closeWebsocket, initWebSocket } from "@/bootstrap/websocket";
 import { loadConfig } from "@/config/config";
 import { logger } from "@/pkg/logger/logger";
 
@@ -27,7 +27,8 @@ async function main() {
 
   const server = http.createServer(app);
 
-  initWebSocket(server);
+  const wsPort = cfg.WEBSOCKET_PORT || 3030;
+  initWebSocket(wsPort);
   logger.info("[SUCCESS]: Initialized WebSocket server");
 
   server.listen(cfg.APP_PORT, () => {
@@ -53,7 +54,7 @@ async function main() {
 
     server.close(async () => {
       try {
-        await Promise.all([closeDatabase(), closeRedis()]);
+        await Promise.all([closeDatabase(), closeRedis(), closeWebsocket()]);
         logger.info("✅ All resources cleaned up. Exiting.");
         process.exit(0);
       } catch (err) {

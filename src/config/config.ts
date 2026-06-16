@@ -11,10 +11,11 @@ export interface Config {
   DB_NAME: string;
   DB_USER: string;
   DB_PASSWORD: string;
-  DB_SCHEMA: string;
   DB_SSL: string;
   DB_URL: string;
   REDIS_URL: string;
+  WEBSOCKET_HOST: string;
+  WEBSOCKET_PORT: number;
 }
 
 export function loadConfig(): Config {
@@ -33,15 +34,16 @@ export function loadConfig(): Config {
       APP_ENV: getEnv("APP_ENV", "local"),
       APP_PORT: getEnvNumber("APP_PORT", 3080),
       APP_LOG_LEVEL: getEnv("APP_LOG_LEVEL", "info"),
-      DB_HOST: getEnv("DB_HOST", "localhost"),
+      DB_HOST: getEnv("DB_HOST", "127.0.0.1"),
       DB_PORT: getEnvNumber("DB_PORT", 5432),
       DB_NAME: getEnv("DB_NAME", "db-example"),
       DB_USER: getEnv("DB_USER", "postgres"),
       DB_PASSWORD: getEnv("DB_PASSWORD", ""),
-      DB_SCHEMA: getEnv("DB_SCHEMA", "public"),
       DB_SSL: getEnv("DB_SSL", "disable"),
       DB_URL: getDatabaseURL(),
-      REDIS_URL: getEnv("REDIS_URL", "redis://localhost:6379"),
+      REDIS_URL: getEnv("REDIS_URL", "redis://127.0.0.1:6379"),
+      WEBSOCKET_HOST: getEnv("WEBSOCKET_HOST", "http://127.0.0.1"),
+      WEBSOCKET_PORT: getEnvNumber("WEBSOCKET_PORT", 3030),
     };
 
     if (!config.DB_PASSWORD && config.APP_ENV === "production") {
@@ -62,8 +64,7 @@ function getDatabaseURL(): string {
   const port = getEnv("DB_PORT", "5432");
   const name = getEnv("DB_NAME", "db-example");
   const ssl = getEnv("DB_SSL", "disable");
-  const schema = getEnv("DB_SCHEMA", "public");
-  return `postgresql://${user}:${password}@${host}:${port}/${name}?sslmode=${ssl}&currentSchema=${schema}`;
+  return `postgresql://${user}:${password}@${host}:${port}/${name}?sslmode=${ssl}`;
 }
 
 function getEnv(key: string, defValue: string): string {

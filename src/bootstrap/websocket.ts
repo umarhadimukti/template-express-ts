@@ -113,10 +113,10 @@ function handleMessage(socket: ExtendedWebSocket, rawData: unknown) {
 }
 
 // initialize web socket server
-export function initWebSocket(server: HttpServer) {
+export function initWebSocket(wsPort: number) {
   if (wss) return wss;
 
-  wss = new WebSocketServer({ server });
+  wss = new WebSocketServer({ port: wsPort });
 
   wss.on("connection", (socket: ExtendedWebSocket) => {
     logger.info("[WS CONNECTED]: WebSocket client connected");
@@ -157,6 +157,23 @@ export function initWebSocket(server: HttpServer) {
   });
 
   return wss;
+}
+
+export function closeWebsocket(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (wss) {
+      wss.close((err) => {
+        if (err) {
+          logger.error(`[WS]: failed to close ws connection: ${err}`);
+          reject(err);
+        }
+        logger.info("[WS]: Websocket server closed");
+        resolve();
+      })
+    } else {
+      resolve();
+    }
+  })
 }
 
 interface ISendPayload {
