@@ -1,5 +1,4 @@
 import { WebSocket, WebSocketServer } from "ws";
-import { Server as HttpServer } from "node:http";
 import { logger } from "@/pkg/logger/logger";
 import { eventBus } from "@/pkg/events/event.bus";
 
