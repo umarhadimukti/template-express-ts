@@ -1,0 +1,1 @@
+ALTER TABLE "roles" ADD COLUMN "code" char(3) NOT NULL;
