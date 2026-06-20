@@ -32,10 +32,3 @@ export interface UserResponse {
   createdAt: Date;
   updatedAt: Date | null;
 }
-
-export interface ListUserResponse {
-  data: UserResponse[];
-  total: number;
-  page: number;
-  limit: number;
-}

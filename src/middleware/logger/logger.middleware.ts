@@ -14,13 +14,13 @@ export const httpLogger = pinoHttp({
   customSuccessMessage: (req, res, responseTime) => {
     const reqId = req.id || req.headers["x-request-id"] || "-";
     const rawRequest = req as any;
-    const body = rawRequest.raw?.body ? JSON.stringify(rawRequest.raw.body) : "-";
+    const body = rawRequest?.body ? JSON.stringify(rawRequest.body) : "-";
     return `[HTTP] ${req.method} ${req.url} | Status: ${res.statusCode} | Time: ${responseTime}ms | ReqID: ${reqId} | Body: ${body}`;
   },
   customErrorMessage: (req, res, err) => {
     const reqId = req.id || req.headers["x-request-id"] || "-";
     const rawRequest = req as any;
-    const body = rawRequest.raw?.body ? JSON.stringify(rawRequest.raw.body) : "-";
+    const body = rawRequest?.body ? JSON.stringify(rawRequest.body) : "-";
     return `[HTTP ERROR] ${req.method} ${req.url} | Status: ${res.statusCode} | Error: ${err.message} | ReqID: ${reqId} | Body: ${body}`;
   },
   // trace_id untuk memudahkan debugging

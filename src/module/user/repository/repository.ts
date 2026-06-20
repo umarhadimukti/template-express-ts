@@ -7,16 +7,24 @@ import type {
   UpdateUserRequest,
   UserResponse,
 } from "../dto/dto";
-import { userRoleTable } from "../../../../drizzle/schema/user_role";
-import { rolesTable } from "../../../../drizzle/schema/role";
+import type { Request } from "express";
+import { userRoleTable } from "#/../drizzle/schema/user_role";
+import { rolesTable } from "#/../drizzle/schema/role";
 import { InternalServer } from "#/pkg/utils/error/error";
+import { PaginationResponse } from "#/pkg/types/pagination";
+import {
+  helperCreateAudit,
+  helperSoftDeleteAudit,
+  helperUpdateAudit,
+} from "#/pkg/utils/helper/common_helper";
 
 type InsertUserData = Omit<CreateUserRequest, "password"> & {
   uid: string;
   passwordHash: string;
 };
 
-const publicColumns = {
+const userColumns = {
+  id: usersTable.id,
   uid: usersTable.uid,
   name: usersTable.name,
   username: usersTable.username,
@@ -26,7 +34,9 @@ const publicColumns = {
   updatedAt: usersTable.updatedAt,
 };
 
-export async function findAll(req: ListUserRequest) {
+export async function findAll(
+  req: ListUserRequest,
+): Promise<PaginationResponse<UserResponse[]>> {
   const offset = (req.page - 1) * req.limit;
   const search = req.keyword
     ? or(
@@ -39,7 +49,7 @@ export async function findAll(req: ListUserRequest) {
 
   const [rows, [{ count }]] = await Promise.all([
     db
-      .select(publicColumns)
+      .select(userColumns)
       .from(usersTable)
       .where(where)
       .limit(req.limit)
@@ -51,8 +61,9 @@ export async function findAll(req: ListUserRequest) {
   ]);
 
   return {
-    data: rows as UserResponse[],
+    items: rows as UserResponse[],
     total: count,
+    total_page: Math.ceil(count / req.limit),
     page: req.page,
     limit: req.limit,
   };
@@ -68,7 +79,7 @@ export async function findByUID(uid: string) {
 
 export async function findByUsername(username: string) {
   const rows = await db
-    .select({ id: usersTable.id })
+    .select(userColumns)
     .from(usersTable)
     .where(eq(usersTable.username, username));
   return rows[0] ?? null;
@@ -76,18 +87,33 @@ export async function findByUsername(username: string) {
 
 export async function findByEmail(email: string) {
   const rows = await db
-    .select({ id: usersTable.id })
+    .select(userColumns)
     .from(usersTable)
     .where(eq(usersTable.email, email));
   return rows[0] ?? null;
 }
 
-export async function insert(data: InsertUserData): Promise<UserResponse> {
+export async function findByEmailOrUsername(
+  email: string,
+  username: string,
+): Promise<UserResponse> {
+  const rows = await db
+    .select(userColumns)
+    .from(usersTable)
+    .where(or(eq(usersTable.email, email), eq(usersTable.username, username)));
+  return rows[0] ?? null;
+}
+
+export async function insert(
+  data: InsertUserData,
+  tx: any = db,
+  req: Request,
+): Promise<UserResponse> {
   try {
-    const rows = await db
+    const rows = await tx
       .insert(usersTable)
-      .values(data)
-      .returning(publicColumns);
+      .values({ ...data, ...helperCreateAudit(req) })
+      .returning(userColumns);
     return rows[0] as Omit<UserResponse, "roles">;
   } catch (err) {
     throw new InternalServer(`Failed to execute query: ${err}`);
@@ -97,26 +123,28 @@ export async function insert(data: InsertUserData): Promise<UserResponse> {
 export async function update(
   uid: string,
   data: UpdateUserRequest,
+  req: Request,
 ): Promise<UserResponse | null> {
   const rows = await db
     .update(usersTable)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...data, ...helperUpdateAudit(req) })
     .where(and(eq(usersTable.uid, uid), isNull(usersTable.deletedAt)))
-    .returning(publicColumns);
+    .returning(userColumns);
   return (rows[0] as UserResponse) ?? null;
 }
 
-export async function softDelete(uid: string): Promise<void> {
+export async function softDelete(uid: string, req: Request): Promise<void> {
   await db
     .update(usersTable)
-    .set({ isActive: false, deletedAt: new Date() })
+    .set({ ...helperSoftDeleteAudit(req) })
     .where(and(eq(usersTable.uid, uid), isNull(usersTable.deletedAt)));
 }
 
 export async function findUserRoles(
   userId: number,
+  tx: any = db,
 ): Promise<{ roleId: number; roleName: string | null }[]> {
-  const userRoles = await db
+  const userRoles = await tx
     .select({ roleId: userRoleTable.roleId, roleName: rolesTable.name })
     .from(userRoleTable)
     .innerJoin(
@@ -134,8 +162,11 @@ export async function findUserRoles(
   return userRoles || [];
 }
 
-export async function checkExistingRoleByCode(roleCode: string) {
-  const role = await db
+export async function checkExistingRoleByCode(
+  roleCode: string,
+  tx: any = db,
+): Promise<{ id: number } | null> {
+  const role = await tx
     .select({ id: rolesTable.id })
     .from(rolesTable)
     .where(
@@ -149,17 +180,23 @@ export async function checkExistingRoleByCode(roleCode: string) {
   return role[0] ?? null;
 }
 
-export async function insertUserRoleByCode(userId: number, roleCode: string) {
+export async function insertUserRoleByCode(
+  userId: number,
+  roleCode: string,
+  tx: any = db,
+  req: Request,
+): Promise<{ roleId: number } | null> {
   try {
-    const existingRole = await checkExistingRoleByCode(roleCode);
-    let userRole = null;
+    const existingRole = await checkExistingRoleByCode(roleCode, tx);
+    let userRole: { roleId: number } | null = null;
     if (existingRole) {
-      const insertedUserRole = await db
+      const insertedUserRole = await tx
         .insert(userRoleTable)
         .values({
           uid: crypto.randomUUID().toString(),
           userId,
           roleId: existingRole.id,
+          ...helperCreateAudit(req),
         })
         .returning({ roleId: userRoleTable.roleId });
       userRole = insertedUserRole[0];
