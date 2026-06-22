@@ -8,12 +8,13 @@ export interface MetaResponse {
 export interface SuccessResponse<T = any> {
   success: boolean;
   message: string;
-  data?: T;
+  data?: T | null;
   meta: MetaResponse;
 }
 
 export interface ErrorDetail {
   reason: string;
+  details?: Record<string, string>[];
 }
 
 export interface ErrorResponse {
@@ -27,7 +28,7 @@ export function successResponse<T = any>(
   res: Response,
   statusCode: number,
   message: string,
-  data: T,
+  data?: T | null,
 ) {
   const response: SuccessResponse<T> = {
     success: true,
@@ -48,6 +49,21 @@ export function errorResponse(
     success: false,
     message,
     errors: { reason: error.message },
+    meta: { status: statusCode, timestamp: new Date().toISOString() },
+  };
+  return res.status(statusCode).json(response);
+}
+
+export function errorValidationResponse(
+  res: Response,
+  statusCode: number,
+  message: string,
+  errors: Record<string, string>[],
+) {
+  const response: ErrorResponse = {
+    success: false,
+    message,
+    errors: { reason: message, details: errors },
     meta: { status: statusCode, timestamp: new Date().toISOString() },
   };
   return res.status(statusCode).json(response);

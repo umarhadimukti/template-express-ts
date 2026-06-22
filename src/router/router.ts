@@ -1,10 +1,12 @@
 import express from "express";
 import userRoutes from "#/module/user/routes/routes";
 
+const BASE_V1 = "/api/v1";
+
 export function initRouterV1(app: express.Application) {
   const router = express.Router();
 
-  router.use("/api/v1/user", userRoutes);
+  router.use(`${BASE_V1}/users`, userRoutes);
   // router.use("/example", exampleRoutes);
 
   app.use(router);

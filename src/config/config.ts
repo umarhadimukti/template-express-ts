@@ -17,6 +17,10 @@ export interface Config {
   REDIS_PORT: number;
   WEBSOCKET_HOST: string;
   WEBSOCKET_PORT: number;
+  JWT_AT_SECRET: string;
+  JWT_RT_SECRET: string;
+  JWT_AT_EXPIRE: string;
+  JWT_RT_EXPIRE: string;
 }
 
 export function loadConfig(): Config {
@@ -46,6 +50,10 @@ export function loadConfig(): Config {
       REDIS_PORT: getEnvNumber("REDIS_PORT", 3679),
       WEBSOCKET_HOST: getEnv("WEBSOCKET_HOST", "http://127.0.0.1"),
       WEBSOCKET_PORT: getEnvNumber("WEBSOCKET_PORT", 3030),
+      JWT_AT_SECRET: getEnv("JWT_AT_SECRET", "secret-key"),
+      JWT_RT_SECRET: getEnv("JWT_RT_SECRET", "secret-key"),
+      JWT_AT_EXPIRE: getEnv("JWT_AT_EXPIRE", "1h"),
+      JWT_RT_EXPIRE: getEnv("JWT_RT_EXPIRE", "7d"),
     };
 
     if (!config.DB_PASSWORD && config.APP_ENV === "production") {
@@ -87,3 +95,5 @@ function getEnvNumber(key: string, defValue: number): number {
   }
   return parsed;
 }
+
+export const cfg = loadConfig();

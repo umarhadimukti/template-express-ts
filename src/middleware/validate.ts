@@ -1,0 +1,48 @@
+import { httpStatus } from "#/pkg/utils/constant/constant";
+import { errorValidationResponse } from "#/pkg/utils/response/response";
+import { ValidationRule } from "#/pkg/validator/rules";
+import type { Request, Response, NextFunction } from "express";
+
+type ValidationSchema = Record<string, ValidationRule[]>;
+
+interface CustomValidator {
+  params?: ValidationSchema;
+  query?: ValidationSchema;
+  body?: ValidationSchema;
+}
+
+export function validate(validators: CustomValidator) {
+  return function (req: Request, res: Response, next: NextFunction) {
+    const errors: Array<{ field: string; message: string }> = [];
+
+    const runValidation = (targetData: any, schema: ValidationSchema) => {
+      for (const [field, rules] of Object.entries(schema)) {
+        const value = targetData?.[field];
+
+        for (const rule of rules) {
+          const errMessage = rule(value, field);
+          if (errMessage) {
+            errors.push({ field, message: errMessage });
+            break;
+          }
+        }
+      }
+    };
+
+    if (validators.params) runValidation(req.params, validators.params);
+    if (validators.query) runValidation(req.query, validators.query);
+    if (validators.body) runValidation(req.body, validators.body);
+
+    if (errors.length > 0) {
+      errorValidationResponse(
+        res,
+        httpStatus.BAD_REQUEST,
+        "Validation error",
+        errors,
+      );
+      return;
+    }
+
+    next();
+  };
+}

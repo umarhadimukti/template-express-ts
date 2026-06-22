@@ -8,6 +8,13 @@ export abstract class CustomError extends Error {
   }
 }
 
+export class InternalServer extends CustomError {
+  statusCode = httpStatus.INTERNAL_SERVER_ERROR;
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 export class BadRequest extends CustomError {
   statusCode = httpStatus.BAD_REQUEST;
   constructor(message: string) {

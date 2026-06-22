@@ -22,18 +22,14 @@ export interface UpdateUserRequest {
 // Response DTOs
 
 export interface UserResponse {
+  id: number;
   uid: string;
   name: string;
   username: string;
   email: string;
+  password?: string;
+  roles?: string[];
   isActive: boolean | null;
   createdAt: Date;
   updatedAt: Date | null;
-}
-
-export interface ListUserResponse {
-  data: UserResponse[];
-  total: number;
-  page: number;
-  limit: number;
 }
