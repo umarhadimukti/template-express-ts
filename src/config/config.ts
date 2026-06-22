@@ -95,3 +95,5 @@ function getEnvNumber(key: string, defValue: number): number {
   }
   return parsed;
 }
+
+export const cfg = loadConfig();

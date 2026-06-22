@@ -27,6 +27,7 @@ export interface UserResponse {
   name: string;
   username: string;
   email: string;
+  password?: string;
   isActive: boolean | null;
   roles?: string[];
   createdAt: Date;

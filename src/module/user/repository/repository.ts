@@ -14,6 +14,7 @@ import { InternalServer } from "#/pkg/utils/error/error";
 import { PaginationResponse } from "#/pkg/types/pagination";
 import {
   helperCreateAudit,
+  helperLogQueryError,
   helperSoftDeleteAudit,
   helperUpdateAudit,
 } from "#/pkg/utils/helper/common_helper";
@@ -71,17 +72,38 @@ export async function findAll(
 
 export async function findByUID(uid: string) {
   const rows = await db
-    .select()
+    .select({
+      id: usersTable.id,
+      uid: usersTable.uid,
+      name: usersTable.name,
+      username: usersTable.username,
+      email: usersTable.email,
+      isActive: usersTable.isActive,
+      createdAt: usersTable.createdAt,
+      createdBy: usersTable.createdBy,
+    })
     .from(usersTable)
     .where(and(eq(usersTable.uid, uid), isNull(usersTable.deletedAt)));
   return rows[0] ?? null;
 }
 
-export async function findByUsername(username: string) {
+export async function findById(id: number): Promise<UserResponse> {
   const rows = await db
     .select(userColumns)
     .from(usersTable)
-    .where(eq(usersTable.username, username));
+    .where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)));
+  return rows[0] ?? null;
+}
+
+export async function findByUsername(
+  username: string,
+): Promise<UserResponse & { password: string }> {
+  const rows = await db
+    .select({ ...userColumns, password: usersTable.passwordHash })
+    .from(usersTable)
+    .where(
+      and(eq(usersTable.username, username), isNull(usersTable.deletedAt)),
+    );
   return rows[0] ?? null;
 }
 
@@ -116,7 +138,8 @@ export async function insert(
       .returning(userColumns);
     return rows[0] as Omit<UserResponse, "roles">;
   } catch (err) {
-    throw new InternalServer(`Failed to execute query: ${err}`);
+    helperLogQueryError("USER_INSERT", err);
+    throw new InternalServer("Failed to execute query");
   }
 }
 
@@ -125,25 +148,35 @@ export async function update(
   data: UpdateUserRequest,
   req: Request,
 ): Promise<UserResponse | null> {
-  const rows = await db
-    .update(usersTable)
-    .set({ ...data, ...helperUpdateAudit(req) })
-    .where(and(eq(usersTable.uid, uid), isNull(usersTable.deletedAt)))
-    .returning(userColumns);
-  return (rows[0] as UserResponse) ?? null;
+  try {
+    const rows = await db
+      .update(usersTable)
+      .set({ ...data, ...helperUpdateAudit(req) })
+      .where(and(eq(usersTable.uid, uid), isNull(usersTable.deletedAt)))
+      .returning(userColumns);
+    return (rows[0] as Omit<UserResponse, "roles">) ?? null;
+  } catch (err) {
+    helperLogQueryError("USER_UPDATE", err);
+    throw new InternalServer("Failed to execute query");
+  }
 }
 
 export async function softDelete(uid: string, req: Request): Promise<void> {
-  await db
-    .update(usersTable)
-    .set({ ...helperSoftDeleteAudit(req) })
-    .where(and(eq(usersTable.uid, uid), isNull(usersTable.deletedAt)));
+  try {
+    await db
+      .update(usersTable)
+      .set({ ...helperSoftDeleteAudit(req) })
+      .where(and(eq(usersTable.uid, uid), isNull(usersTable.deletedAt)));
+  } catch (err) {
+    helperLogQueryError("USER_SOFTDELETE", err);
+    throw new InternalServer("Failed to execute query");
+  }
 }
 
 export async function findUserRoles(
   userId: number,
   tx: any = db,
-): Promise<{ roleId: number; roleName: string | null }[]> {
+): Promise<string[]> {
   const userRoles = await tx
     .select({ roleId: userRoleTable.roleId, roleName: rolesTable.name })
     .from(userRoleTable)
@@ -159,7 +192,11 @@ export async function findUserRoles(
         isNull(rolesTable.deletedAt),
       ),
     );
-  return userRoles || [];
+  return userRoles.length > 0
+    ? userRoles.map(
+        (role: { roleId: number; roleName: string }) => role.roleName!,
+      )
+    : [];
 }
 
 export async function checkExistingRoleByCode(
@@ -203,6 +240,7 @@ export async function insertUserRoleByCode(
     }
     return userRole;
   } catch (err) {
-    throw new InternalServer(`Failed to execute query: ${err}`);
+    helperLogQueryError("USER_INSERT_USER_ROLE_BY_CODE", err);
+    throw new InternalServer("Failed to execute query");
   }
 }

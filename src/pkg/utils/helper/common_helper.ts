@@ -1,3 +1,4 @@
+import { logger } from "#/pkg/logger/logger";
 import type { Request } from "express";
 
 export function isEmail(value: string) {
@@ -23,4 +24,8 @@ export function helperSoftDeleteAudit(req: Request) {
     deletedAt: new Date(),
     deletedBy: req?.user?.username || "system",
   };
+}
+
+export function helperLogQueryError(funcName: string, err: unknown) {
+  logger.error(`[${funcName}]: ${err}`);
 }
