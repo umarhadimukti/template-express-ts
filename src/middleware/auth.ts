@@ -6,37 +6,49 @@ import type { Request, Response, NextFunction } from "express";
 import { UserResponse } from "#/module/user/dto/dto";
 import { cfg } from "#/config/config";
 
-export async function auth() {
+const PREFIX_BEARER = "Bearer";
+
+export function authenticated() {
   return (req: Request, res: Response, next: NextFunction) => {
-    const token = req.cookies?.access_token as string | undefined;
+    let token: string | undefined = undefined;
+
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith(PREFIX_BEARER)) {
+      token = authHeader.split(" ")[1];
+    }
+
+    if (!token && req.cookies) {
+      token = req.cookies?.access_token as string | undefined;
+    }
+
     if (!token) {
       errorResponse(
         res,
         httpStatus.UNAUTHORIZED,
         "Unauthorized",
-        new Unauthorized("Unauthorized"),
+        new Unauthorized("Token not found"),
       );
       return;
     }
     try {
-      const payload = jwt.verify(token, cfg.JWT_AT_SECRET) as Omit<
+      const decoded = jwt.verify(token, cfg.JWT_AT_SECRET) as Omit<
         UserResponse,
         "id" | "uid" | "password" | "createdAt" | "updatedAt"
       >;
-      req.user = payload;
+      req.user = decoded;
       next();
     } catch (err) {
       errorResponse(
         res,
         httpStatus.UNAUTHORIZED,
-        "Invalid or expired token",
+        "Unauthorized",
         new Unauthorized("Invalid or expired token"),
       );
     }
   };
 }
 
-export async function authorizeRoles(roles: string[]) {
+export function authorizeRoles(roles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       errorResponse(

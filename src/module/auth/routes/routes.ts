@@ -2,7 +2,7 @@ import express from "express";
 import * as ctrl from "#/module/auth/controller/controller";
 import { validate } from "#/middleware/validate";
 import { Rules } from "#/pkg/validator/rules";
-import { auth } from "#/middleware/auth";
+import { authenticated } from "#/middleware/auth";
 
 const router = express.Router();
 
@@ -27,7 +27,7 @@ router.post(
 );
 router.post("/refresh", ctrl.refresh);
 
-router.get("/user", auth, ctrl.getCurrentUser);
-router.post("/logout", auth, ctrl.logout);
+router.get("/user", authenticated(), ctrl.getCurrentUser);
+router.post("/logout", authenticated(), ctrl.logout);
 
 export default router;

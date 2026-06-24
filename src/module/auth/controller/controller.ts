@@ -5,6 +5,7 @@ import { httpStatus } from "#/pkg/utils/constant/constant";
 import { authMessage, cookieMaxAge } from "#/module/auth/constant/constant";
 import { cfg } from "#/config/config";
 import { Unauthorized } from "#/pkg/utils/error/error";
+import type { UserResponse } from "#/module/user/dto/dto";
 
 export async function getCurrentUser(
   req: Request,
@@ -12,7 +13,10 @@ export async function getCurrentUser(
   next: NextFunction,
 ) {
   try {
-    const user = req?.user!;
+    const user = req?.user as Omit<
+      UserResponse,
+      "id" | "uid" | "password" | "createdAt" | "updatedAt"
+    > | null;
     successResponse(res, httpStatus.OK, authMessage.USER_SUCCESS, user);
   } catch (err) {
     next(err);
@@ -59,7 +63,7 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
     await authService.logout(req?.user?.username!, oldRefreshToken, req);
     res.clearCookie("access_token");
     res.clearCookie("refresh_token");
-    successResponse(res, httpStatus.NO_CONTENT, authMessage.LOGOUT_SUCCESS);
+    successResponse(res, httpStatus.OK, authMessage.LOGOUT_SUCCESS);
   } catch (err) {
     next(err);
   }
@@ -87,7 +91,7 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
       maxAge: cookieMaxAge.ACCESS_TOKEN,
     });
 
-    successResponse(res, httpStatus.NO_CONTENT, authMessage.REFRESH_SUCCESS);
+    successResponse(res, httpStatus.OK, authMessage.REFRESH_SUCCESS);
   } catch (err) {
     next(err);
   }
