@@ -3,34 +3,57 @@ import { SQL } from "drizzle-orm";
 
 class QueryHelper {
   /**
-   * List raw query helper
-   * @param query
-   * @returns
+   * validation function that allow select statement only
    */
-  async rawList<T>(query: SQL): Promise<T[]> {
+  static async validateSelectStatement(query: SQL): Promise<void> {
+    let sqlString = "";
     try {
-      const result = await db.execute(query);
-      return (result.rows as T[]) || [];
-    } catch (err) {
-      throw err;
+      if (typeof (query as any).toSQL === "function") {
+        sqlString = (query as any).toSQL().sql ?? String(query);
+      } else if (typeof (query as any).sql === "string") {
+        sqlString = (query as any).sql;
+      } else {
+        sqlString = String(query);
+      }
+    } catch (e) {
+      sqlString = String(query);
+    }
+
+    if (!/^\s*select\b/i.test(sqlString)) {
+      throw new Error("Only SELECT statements are allowed");
     }
   }
 
   /**
-   * Raw query helper
+   * list raw query helper
    * @param query
-   * @returns
+   * @returns Promise<T[]>
    */
-  async raw<T>(query: SQL): Promise<T | null> {
-    try {
-      const result = await db.execute(query);
-      if (result.rows && result.rows.length > 0) {
-        return result.rows[0] as T;
-      }
-      return null;
-    } catch (err) {
-      throw err;
-    }
+  static async rawList<T>(query: SQL): Promise<T[]> {
+    await this.validateSelectStatement(query);
+    const result = db
+      .execute(query)
+      .then((res) => (res.rows as T[]) || [])
+      .catch((err) => {
+        throw err;
+      });
+    return result;
+  }
+
+  /**
+   * raw query helper
+   * @param query
+   * @returns Promise<T | null>
+   */
+  static async raw<T>(query: SQL): Promise<T | null> {
+    await this.validateSelectStatement(query);
+    const result = db
+      .execute(query)
+      .then((res) => (res.rows[0] as T) ?? null)
+      .catch((err) => {
+        throw err;
+      });
+    return result;
   }
 }
 

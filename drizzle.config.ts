@@ -1,5 +1,5 @@
 import { defineConfig } from "drizzle-kit";
-import { cfg, loadConfig } from './src/config/config';
+import { cfg } from './src/config/config';
 
 export default defineConfig({
   dialect: "postgresql",
