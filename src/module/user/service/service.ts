@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import type { Request } from "express";
 import { BadRequest, Conflict, NotFound } from "#/pkg/utils/error/error";
 import { userError } from "../constant/error";
 import type { CreateUserRequest, ListUserRequest, UpdateUserRequest } from "../dto/dto";
@@ -12,53 +13,56 @@ export async function getUser(uid: string) {
   const user = await repo.findByUID(uid);
   if (!user) throw new NotFound(userError.NOT_FOUND);
 
-  const { passwordHash: _, ...publicFields } = user;
-  return publicFields;
+  return user;
 }
 
-export async function createUser(req: CreateUserRequest) {
-  if (!req.name) throw new BadRequest("name is required");
-  if (!req.username) throw new BadRequest("username is required");
-  if (!req.email) throw new BadRequest("email is required");
-  if (!req.password) throw new BadRequest("password is required");
+export async function createUser(body: CreateUserRequest, req: Request) {
+  if (!body.name) throw new BadRequest("name is required");
+  if (!body.username) throw new BadRequest("username is required");
+  if (!body.email) throw new BadRequest("email is required");
+  if (!body.password) throw new BadRequest("password is required");
 
   const [existingUsername, existingEmail] = await Promise.all([
-    repo.findByUsername(req.username),
-    repo.findByEmail(req.email),
+    repo.findByUsername(body.username),
+    repo.findByEmail(body.email),
   ]);
   if (existingUsername) throw new Conflict(userError.USERNAME_TAKEN);
   if (existingEmail) throw new Conflict(userError.EMAIL_TAKEN);
 
-  const passwordHash = await hashPassword(req.password);
+  const passwordHash = await hashPassword(body.password);
   const uid = crypto.randomUUID();
 
-  return repo.insert({ uid, name: req.name, username: req.username, email: req.email, passwordHash });
+  return repo.insert(
+    { uid, name: body.name, username: body.username, email: body.email, passwordHash },
+    undefined,
+    req,
+  );
 }
 
-export async function updateUser(uid: string, req: UpdateUserRequest) {
-  if (!req.name && !req.username && !req.email) {
+export async function updateUser(uid: string, body: UpdateUserRequest, req: Request) {
+  if (!body.name && !body.username && !body.email) {
     throw new BadRequest("At least one field (name, username, email) is required");
   }
 
   const user = await repo.findByUID(uid);
   if (!user) throw new NotFound(userError.NOT_FOUND);
 
-  if (req.username && req.username !== user.username) {
-    const existing = await repo.findByUsername(req.username);
+  if (body.username && body.username !== user.username) {
+    const existing = await repo.findByUsername(body.username);
     if (existing) throw new Conflict(userError.USERNAME_TAKEN);
   }
-  if (req.email && req.email !== user.email) {
-    const existing = await repo.findByEmail(req.email);
+  if (body.email && body.email !== user.email) {
+    const existing = await repo.findByEmail(body.email);
     if (existing) throw new Conflict(userError.EMAIL_TAKEN);
   }
 
-  return repo.update(uid, req);
+  return repo.update(uid, body, req);
 }
 
-export async function deleteUser(uid: string) {
+export async function deleteUser(uid: string, req: Request) {
   const user = await repo.findByUID(uid);
   if (!user) throw new NotFound(userError.NOT_FOUND);
-  await repo.softDelete(uid);
+  await repo.softDelete(uid, req);
 }
 
 async function hashPassword(password: string): Promise<string> {

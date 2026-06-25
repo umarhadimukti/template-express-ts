@@ -31,7 +31,7 @@ export async function getUser(req: Request, res: Response, next: NextFunction) {
 export async function createUser(req: Request, res: Response, next: NextFunction) {
   try {
     const body = req.body as CreateUserRequest;
-    const user = await userService.createUser(body);
+    const user = await userService.createUser(body, req);
     successResponse(res, httpStatus.CREATED, userMessage.CREATED, user);
   } catch (err) {
     next(err);
@@ -42,7 +42,7 @@ export async function updateUser(req: Request, res: Response, next: NextFunction
   try {
     const uid = req.params.uid as string;
     const body = req.body as UpdateUserRequest;
-    const user = await userService.updateUser(uid, body);
+    const user = await userService.updateUser(uid, body, req);
     successResponse(res, httpStatus.OK, userMessage.UPDATED, user);
   } catch (err) {
     next(err);
@@ -52,7 +52,7 @@ export async function updateUser(req: Request, res: Response, next: NextFunction
 export async function deleteUser(req: Request, res: Response, next: NextFunction) {
   try {
     const uid = req.params.uid as string;
-    await userService.deleteUser(uid);
+    await userService.deleteUser(uid, req);
     successResponse(res, httpStatus.OK, userMessage.DELETED, null);
   } catch (err) {
     next(err);
