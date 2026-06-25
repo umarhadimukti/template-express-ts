@@ -35,6 +35,7 @@ export const validate = (validators: CustomValidator) => {
 
     if (errors.length > 0) {
       errorValidationResponse(res, httpStatus.BAD_REQUEST, "Validation error", errors);
+      return;
     }
 
     return next();

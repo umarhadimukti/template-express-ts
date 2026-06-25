@@ -24,7 +24,10 @@
 
     "paths": {
       "#/*": ["./src/*"]
-    }
+    },
+
+    "types": ["node", "jest"],
+    "isolatedModules": true
   },
   "include": ["src/**/*", "drizzle/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "dist"]
